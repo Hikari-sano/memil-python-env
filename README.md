@@ -8,7 +8,7 @@
 
 ## これは何ですか？
 
-このリポジトリは、Mimel Lab の研究・開発で使うための **Python / VS Code / AI 環境セット** です。
+このリポジトリは、MEMIL の研究・開発で使うための **Python / VS Code / AI 環境セット** です。
 
 Python をまだよく知らない人でも、できるだけ迷わず使えるように、基本操作は `.bat` ファイルをダブルクリックする形にしています。
 
@@ -354,7 +354,7 @@ AI_CATALOG.bat
 
 ## What is this?
 
-This repository provides a **portable Python / VS Code / AI development environment** for Mimel Lab.
+This repository provides a **portable Python / VS Code / AI development environment** for MEMIL Lab.
 
 It is designed so that beginners can set up and use the environment mostly by double-clicking `.bat` files.
 
