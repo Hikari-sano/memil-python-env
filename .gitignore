@@ -46,3 +46,5 @@ projects/**/*.avi
 projects/**/*.mov
 projects/**/*.wav
 projects/**/*.mp3
+# Environment reports for AI troubleshooting
+env_reports/
