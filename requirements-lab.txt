@@ -1,0 +1,7 @@
+# 研究室共通で入れたいPythonパッケージをここに追加できます。
+# 例:
+# numpy
+# pandas
+# matplotlib
+# scipy
+# jupyter

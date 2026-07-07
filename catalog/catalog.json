@@ -1,0 +1,38 @@
+{
+  "name": "PyDevCatalog Starter Catalog",
+  "version": "0.1.0",
+  "packages": [
+    {
+      "id": "python-basic",
+      "name": "Python 基本セット",
+      "category": "core",
+      "description": "Python 3.12、VS Code Python拡張、Pylance、debugpyを使う基本構成です。",
+      "install": {
+        "kind": "bootstrap"
+      },
+      "tags": ["初心者", "Python", "VS Code"]
+    },
+    {
+      "id": "ruff",
+      "name": "Ruff",
+      "category": "formatter-linter",
+      "description": "Python用の高速リンター/フォーマッターです。",
+      "install": {
+        "kind": "vscode-extension",
+        "extensionId": "charliermarsh.ruff"
+      },
+      "tags": ["整形", "Lint", "開発効率"]
+    },
+    {
+      "id": "hello-python-template",
+      "name": "Hello Python テンプレート",
+      "category": "template",
+      "description": "main.pyから始める最小Pythonプロジェクトです。",
+      "install": {
+        "kind": "template",
+        "source": "catalog/templates/hello-python"
+      },
+      "tags": ["テンプレート", "入門"]
+    }
+  ]
+}
