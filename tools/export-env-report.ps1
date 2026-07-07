@@ -68,10 +68,7 @@ function Add-Section {
 }
 
 function Run-Cmd {
-    param(
-        [string]$Title,
-        [string]$Command
-    )
+    param([string]$Title, [string]$Command)
     Add-Section $Title
     Add-Line "> $Command"
     try {
@@ -83,10 +80,7 @@ function Run-Cmd {
 }
 
 function Run-PS {
-    param(
-        [string]$Title,
-        [scriptblock]$Block
-    )
+    param([string]$Title, [scriptblock]$Block)
     Add-Section $Title
     try {
         $out = & $Block 2>&1 | Out-String
@@ -113,39 +107,25 @@ function Test-SkipFile {
 }
 
 function Write-Tree {
-    param(
-        [string]$Path,
-        [string]$Prefix = "",
-        [int]$Depth = 0,
-        [int]$MaxDepth = 8
-    )
-
+    param([string]$Path, [string]$Prefix = "", [int]$Depth = 0, [int]$MaxDepth = 8)
     if ($Depth -gt $MaxDepth) {
         Add-TreeLine ($Prefix + "... max depth omitted")
         return
     }
-
     $children = Get-ChildItem -LiteralPath $Path -Force -ErrorAction SilentlyContinue | Where-Object {
-        if ($_.PSIsContainer) {
-            -not (Test-SkipDirName $_.Name)
-        } else {
-            -not (Test-SkipFile $_)
-        }
+        if ($_.PSIsContainer) { -not (Test-SkipDirName $_.Name) } else { -not (Test-SkipFile $_) }
     } | Sort-Object @{Expression='PSIsContainer';Descending=$true}, Name
-
     foreach ($child in $children) {
         $label = $child.Name
         if ($child.PSIsContainer) {
             Add-TreeLine ($Prefix + "[D] " + $label + "/")
             Write-Tree -Path $child.FullName -Prefix ($Prefix + "    ") -Depth ($Depth + 1) -MaxDepth $MaxDepth
         } else {
-            $size = $child.Length
-            Add-TreeLine ($Prefix + "[F] " + $label + "  (" + $size + " bytes)")
+            Add-TreeLine ($Prefix + "[F] " + $label + "  (" + $child.Length + " bytes)")
         }
     }
 }
 
-# File tree report
 Set-Content -Path $TreePath -Encoding UTF8 -Value "Mimel Lab File Tree"
 Add-TreeLine "Created: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
 Add-TreeLine "Root: $Root"
@@ -156,7 +136,6 @@ Add-TreeLine "Note: File contents are NOT included. Large model/media files are 
 Add-TreeLine ""
 Write-Tree -Path $Root -Prefix "" -Depth 0 -MaxDepth 8
 
-# Main report
 Set-Content -Path $ReportPath -Encoding UTF8 -Value "Mimel Lab Environment Report"
 Add-Line "Created: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
 Add-Line "Root: $Root"
@@ -179,18 +158,7 @@ Run-PS "OS / PowerShell" {
 Run-Cmd "Git" "git --version && git status --short && git remote -v && git log --oneline -5"
 
 Run-PS "Important Files" {
-    $files = @(
-        "Start.bat",
-        "Install-AI.bat",
-        "YOLO_INSTALL.bat",
-        "YOLO_RUN.bat",
-        "SHARE_ENV_TO_AI.bat",
-        "tools\bootstrap.ps1",
-        "tools\install-yolo.ps1",
-        "tools\export-env-report.ps1",
-        "catalog\ai-catalog.json",
-        ".gitignore"
-    )
+    $files = @("Start.bat", "Install-AI.bat", "YOLO_INSTALL.bat", "YOLO_RUN.bat", "SHARE_ENV_TO_AI.bat", "tools\bootstrap.ps1", "tools\install-yolo.ps1", "tools\export-env-report.ps1", "catalog\ai-catalog.json", ".gitignore")
     foreach ($f in $files) {
         $p = Join-Path $Root $f
         if (Test-Path $p) {
@@ -215,37 +183,18 @@ Run-PS "Projects" {
     }
 }
 
-Run-PS "File Tree Preview" {
-    Get-Content -Path $TreePath -TotalCount 250
-}
+Run-PS "File Tree Preview" { Get-Content -Path $TreePath -TotalCount 250 }
 
 Run-PS "VS Code" {
     $CodeExe = Join-Path $Root "vscode\Code.exe"
     $CodeCmd = Join-Path $Root "vscode\bin\code.cmd"
-    if (Test-Path $CodeExe) {
-        "Code.exe: $CodeExe"
-        & $CodeExe --version
-    } else {
-        "Code.exe not found"
-    }
-    if (Test-Path $CodeCmd) {
-        "Installed extensions:"
-        & $CodeCmd --list-extensions --show-versions
-    } else {
-        "code.cmd not found"
-    }
+    if (Test-Path $CodeExe) { "Code.exe: $CodeExe"; & $CodeExe --version } else { "Code.exe not found" }
+    if (Test-Path $CodeCmd) { "Installed extensions:"; & $CodeCmd --list-extensions --show-versions } else { "code.cmd not found" }
 }
 
 Run-PS "uv / Python" {
     $LocalUvExe = Join-Path $Root "python\uv\uv.exe"
-    if (Test-Path $LocalUvExe) {
-        "uv.exe: $LocalUvExe"
-        & $LocalUvExe --version
-        "uv python list:"
-        & $LocalUvExe python list
-    } else {
-        "uv.exe not found"
-    }
+    if (Test-Path $LocalUvExe) { "uv.exe: $LocalUvExe"; & $LocalUvExe --version; "uv python list:"; & $LocalUvExe python list } else { "uv.exe not found" }
 }
 
 Run-PS "Project Python Environments" {
@@ -255,19 +204,10 @@ Run-PS "Project Python Environments" {
             $proj = $_.FullName
             $py = Join-Path $proj ".venv\Scripts\python.exe"
             "--- Project: $($_.Name) ---"
-            if (Test-Path $py) {
-                "Python: $py"
-                & $py --version
-                "Packages:"
-                & $py -m pip list
-            } else {
-                "No .venv Python found"
-            }
+            if (Test-Path $py) { "Python: $py"; & $py --version; "Packages:"; & $py -m pip list } else { "No .venv Python found" }
             ""
         }
-    } else {
-        "projects folder not found"
-    }
+    } else { "projects folder not found" }
 }
 
 Run-PS "YOLO Check" {
@@ -275,46 +215,34 @@ Run-PS "YOLO Check" {
     if (Test-Path $py) {
         & $py -c "import sys; print(sys.executable); import ultralytics; print('ultralytics', ultralytics.__version__)"
         $result = Join-Path $Root "projects\yolo-sample\yolo_result.jpg"
-        if (Test-Path $result) {
-            "YOLO result image exists: $result"
-        } else {
-            "YOLO result image not found yet."
-        }
-    } else {
-        "YOLO venv not found. Run YOLO_INSTALL.bat first."
-    }
+        if (Test-Path $result) { "YOLO result image exists: $result" } else { "YOLO result image not found yet." }
+    } else { "YOLO venv not found. Run YOLO_INSTALL.bat first." }
 }
 
 Run-PS "GPU / NVIDIA" {
     $cmd = Get-Command nvidia-smi -ErrorAction SilentlyContinue
-    if ($cmd) {
-        nvidia-smi
-    } else {
-        "nvidia-smi not found. NVIDIA GPU driver may not be installed, or this PC may not have NVIDIA GPU."
-    }
+    if ($cmd) { nvidia-smi } else { "nvidia-smi not found. NVIDIA GPU driver may not be installed, or this PC may not have NVIDIA GPU." }
 }
 
-Run-PS "Disk Space" {
-    Get-PSDrive -PSProvider FileSystem | Select-Object Name, Root, Used, Free | Format-Table -AutoSize
-}
+Run-PS "Disk Space" { Get-PSDrive -PSProvider FileSystem | Select-Object Name, Root, Used, Free | Format-Table -AutoSize }
 
 $PromptLines = @(
-    "以下は Mimel Lab Python / AI 環境のトラブル相談です。",
-    "私はPythonやVS Codeの環境に詳しくない可能性があります。",
-    "下の環境レポートとファイル構造を前提に、原因と解決手順を初心者向けに説明してください。",
+    "Mimel Lab Python / AI environment troubleshooting request.",
+    "The user may be unfamiliar with Python, VS Code, venv, or PowerShell.",
+    "Please use the attached environment report and file tree to explain the cause and steps in beginner-friendly language.",
     "",
-    "相談したい内容:",
-    "- ここに困っていることを書いてください。",
-    "- 例: YOLO_RUN.bat でエラーが出る / Start.bat が止まる / VS Codeで実行できない",
+    "Problem description:",
+    "- Write the problem here.",
+    "- Example: YOLO_RUN.bat fails / Start.bat stops / VS Code uses wrong Python.",
     "",
-    "共有するファイル:",
+    "Files to share:",
     "1. $ReportPath",
     "2. $TreePath",
     "",
-    "注意:",
-    "- APIキー、パスワード、研究データの中身は貼りません。",
-    "- ファイル構造にはファイル名やフォルダ名が含まれます。共有前に確認してください。",
-    "- USERPROFILE と USERNAME は可能な範囲でマスクされています。"
+    "Safety notes:",
+    "- Do not paste API keys, passwords, tokens, or private research data.",
+    "- The file tree contains file and folder names. Check it before sharing.",
+    "- USERPROFILE and USERNAME are masked where possible."
 )
 Set-Content -Path $PromptPath -Encoding UTF8 -Value ($PromptLines | ForEach-Object { Safe-Text $_ })
 
