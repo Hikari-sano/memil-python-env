@@ -48,3 +48,8 @@ projects/**/*.wav
 projects/**/*.mp3
 # Environment reports for AI troubleshooting
 env_reports/
+# WinPython runtime, local only
+winpython/
+
+# old uv runtime, if present
+python/
