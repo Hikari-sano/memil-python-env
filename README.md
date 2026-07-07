@@ -1,106 +1,238 @@
-# PyDevCatalog for Lab
+# Mimel Lab Python / AI Environment
 
-研究室メンバー全員が、GitHubから同じ Python + VS Code ポータブル開発環境を構築するためのスターターです。
+日本語 | [English](#english)
 
-## 目的
+---
 
-- Windows PCにVS CodeやPythonを個別インストールしなくても使えるようにする
-- 研究室メンバー全員でPythonバージョン、VS Code拡張、初期設定を揃える
-- 新入生が `git clone` またはZIPダウンロード後に `Start.bat` を押すだけで始められるようにする
+## 日本語
 
-## 初回セットアップ
+## 概要
 
-### 方法A: Gitが使える場合
+このリポジトリは、Mimel Lab向けの **ポータブルPython / VS Code / AI開発環境** です。
 
-```powershell
-git clone https://github.com/YOUR_ORG/YOUR_REPO.git
-cd YOUR_REPO
-.\Start.bat
-```
+初心者が迷わないように、ルート直下の入口はできるだけ少なくしています。
 
-### 方法B: Gitが使えない場合
-
-1. GitHubのリポジトリページを開く
-2. `Code` → `Download ZIP`
-3. ZIPを展開
-4. `Start.bat` を実行
-
-## 初回実行時に作成されるもの
+基本的に使うファイルは次の3つです。
 
 ```text
-vscode/              # VS Code ZIP版。Git管理しない
-vscode/data/         # VS Codeポータブルモード用データ
-python/              # uv と uv管理Python。Git管理しない
-cache/               # ダウンロードキャッシュ。Git管理しない
-projects/hello-python # サンプルプロジェクト
+Start.bat
+AI_CATALOG.bat
+SHARE_ENV_TO_AI.bat
 ```
 
-## 管理者・運用者向け
+---
 
-### GitHubに置くもの
+## 最初に使う手順
 
-GitHubリポジトリには、以下だけを置きます。
+### 1. 基本環境を作る
 
-- `Start.bat`
-- `tools/bootstrap.ps1`
-- `catalog/catalog.json`
-- `catalog/templates/`
-- `README.md`
-- `.gitignore`
+```text
+Start.bat
+```
 
-VS Code本体、Python本体、`.venv`、キャッシュはGitHubに置きません。初回起動時に取得します。
+をダブルクリックします。
 
-### VS Code拡張機能を増やす
+初回はVS Code、Python、uvなどの準備に数分かかります。
 
-`tools/bootstrap.ps1` の `$Extensions` に拡張機能IDを追加してください。
+---
 
-例:
+### 2. AIモデルを使う
+
+```text
+AI_CATALOG.bat
+```
+
+をダブルクリックします。
+
+メニューから使いたいAIを選びます。
+
+```text
+1. YOLO / Ultralytics
+2. Whisper
+3. Hugging Face Transformers
+4. SAM / Segment Anything
+5. Diffusers
+```
+
+各AIの中で、次の操作を選べます。
+
+```text
+Install / Update
+Run sample
+Open project folder
+```
+
+---
+
+## YOLOを試す例
+
+1. `AI_CATALOG.bat` をダブルクリック
+2. `1. YOLO / Ultralytics` を選ぶ
+3. `1. Install / Update` を選ぶ
+4. インストール完了後、`2. Run sample` を選ぶ
+5. `projects/yolo-sample/yolo_result.jpg` が作られれば成功
+
+---
+
+## VS Codeでの注意
+
+VS Code右上の再生ボタンは、違うPython環境を使ってしまうことがあります。
+初心者は、まず `AI_CATALOG.bat` の `Run sample` を使ってください。
+
+---
+
+## 環境情報をAIに共有する
+
+エラーが出た場合は、以下をダブルクリックします。
+
+```text
+SHARE_ENV_TO_AI.bat
+```
+
+以下が作られます。
+
+```text
+env_reports/AI_prompt_日時.txt
+env_reports/env_report_日時.txt
+env_reports/file_tree_日時.txt
+```
+
+AIに相談するときは、まず `AI_prompt_日時.txt` の内容を貼り付けてください。
+必要に応じて `env_report_日時.txt` と `file_tree_日時.txt` も共有してください。
+
+---
+
+## GitHubに上げないもの
+
+```text
+vscode/
+python/
+cache/
+models/
+env_reports/
+projects/*/.venv/
+projects/**/runs/
+*.pt
+*.pth
+*.onnx
+*.safetensors
+*.ckpt
+*.bin
+```
+
+---
+
+## 旧環境を使っている場合
+
+Gitでcloneした人:
 
 ```powershell
-$Extensions = @(
-    "ms-ceintl.vscode-language-pack-ja",
-    "ms-python.python",
-    "ms-python.vscode-pylance",
-    "ms-python.debugpy",
-    "charliermarsh.ruff",
-    "ms-toolsai.jupyter"
-)
+git pull
+Start.bat
+AI_CATALOG.bat
 ```
 
-### Pythonバージョンを変える
+Download ZIPで入れた人:
 
-`tools/bootstrap.ps1` 内の `3.12` を変更してください。
+1. 最新版ZIPをダウンロード
+2. ZIPを展開
+3. `Start.bat` を実行
+4. `AI_CATALOG.bat` を実行
 
-```powershell
-& $UvExe python install 3.12
-& $UvExe venv (Join-Path $HelloDir ".venv") --python 3.12
+---
+
+# English
+
+## Overview
+
+This repository provides a **portable Python / VS Code / AI development environment** for Mimel Lab.
+
+To avoid confusion for beginners, the root folder has only a few main entry points.
+
+Use these files first:
+
+```text
+Start.bat
+AI_CATALOG.bat
+SHARE_ENV_TO_AI.bat
 ```
 
-### 研究室用パッケージを自動導入する
+---
 
-`tools/bootstrap.ps1` の `.venv` 作成後に、以下のように追加できます。
+## Getting Started
 
-```powershell
-& $UvExe pip install --python (Join-Path $HelloDir ".venv\Scripts\python.exe") numpy pandas matplotlib scipy jupyter
+### 1. Set up the base environment
+
+Double-click:
+
+```text
+Start.bat
 ```
 
-## 注意
+The first run may take several minutes because it prepares VS Code, Python, and uv.
 
-- 初回実行時はインターネット接続が必要です。
-- VS Code ZIP版は自動更新されません。
-- 大きなバイナリをGitリポジトリにコミットしないでください。
-- 研究室のプロキシ環境では、PowerShellの `Invoke-WebRequest` や `Invoke-RestMethod` が失敗する場合があります。
+---
 
-## トラブルシュート
+### 2. Use AI tools
 
-### PowerShellの実行がブロックされる
+Double-click:
 
-`Start.bat` は `-ExecutionPolicy Bypass` を付けて起動しますが、学校・研究室PCのポリシーで禁止されている場合があります。管理者に確認してください。
+```text
+AI_CATALOG.bat
+```
 
-### VS Code拡張機能の導入に失敗する
+Select an AI tool from the menu.
 
-ネットワーク制限が原因のことがあります。VS Code起動後、拡張機能画面から手動で導入してください。
+```text
+1. YOLO / Ultralytics
+2. Whisper
+3. Hugging Face Transformers
+4. SAM / Segment Anything
+5. Diffusers
+```
 
-### リポジトリが大きくなりすぎた
+Each tool has a submenu.
 
-`vscode/`, `python/`, `cache/`, `.venv/` がGit管理に入っていないか確認してください。
+```text
+Install / Update
+Run sample
+Open project folder
+```
+
+---
+
+## YOLO Example
+
+1. Double-click `AI_CATALOG.bat`
+2. Select `1. YOLO / Ultralytics`
+3. Select `1. Install / Update`
+4. After installation, select `2. Run sample`
+5. If `projects/yolo-sample/yolo_result.jpg` is created, it worked
+
+---
+
+## VS Code Note
+
+The Run button in VS Code may use the wrong Python environment.
+Beginners should use `Run sample` from `AI_CATALOG.bat` first.
+
+---
+
+## Share Environment Information with AI
+
+If an error occurs, double-click:
+
+```text
+SHARE_ENV_TO_AI.bat
+```
+
+It creates:
+
+```text
+env_reports/AI_prompt_timestamp.txt
+env_reports/env_report_timestamp.txt
+env_reports/file_tree_timestamp.txt
+```
+
+Paste `AI_prompt_timestamp.txt` to AI first.
+Share `env_report_timestamp.txt` and `file_tree_timestamp.txt` if needed.

@@ -7,7 +7,7 @@ cls
 echo ========================================
 echo Mimel Lab AI Catalog
 echo ========================================
-echo Please select what you want to use.
+echo Select an AI tool.
 echo.
 echo 1. YOLO / Ultralytics
 echo 2. Whisper
@@ -36,9 +36,9 @@ cls
 echo ========================================
 echo YOLO / Ultralytics
 echo ========================================
-echo 1. Install / Update YOLO
-echo 2. Run YOLO sample
-echo 3. Open YOLO project folder
+echo 1. Install / Update
+echo 2. Run sample
+echo 3. Open project folder
 echo 4. Back
 echo.
 set /p Y=Select number: 
@@ -50,7 +50,7 @@ if "%Y%"=="1" (
 if "%Y%"=="2" (
   if not exist ".\projects\yolo-sample\RUN_YOLO.bat" (
     echo YOLO is not installed yet.
-    echo Please choose 1. Install / Update YOLO first.
+    echo Please choose 1. Install / Update first.
     pause
     goto yolo
   )
@@ -70,9 +70,9 @@ cls
 echo ========================================
 echo Whisper
 echo ========================================
-echo 1. Install / Update Whisper
-echo 2. Run Whisper sample
-echo 3. Open Whisper project folder
+echo 1. Install / Update
+echo 2. Run sample
+echo 3. Open project folder
 echo 4. Back
 echo.
 set /p W=Select number: 
@@ -84,7 +84,7 @@ if "%W%"=="1" (
 if "%W%"=="2" (
   if not exist ".\projects\whisper-sample\RUN_WHISPER.bat" (
     echo Whisper is not installed yet.
-    echo Please choose 1. Install / Update Whisper first.
+    echo Please choose 1. Install / Update first.
     pause
     goto whisper
   )
@@ -104,9 +104,9 @@ cls
 echo ========================================
 echo Hugging Face Transformers
 echo ========================================
-echo 1. Install / Update Transformers
-echo 2. Run Transformers sample
-echo 3. Open Transformers project folder
+echo 1. Install / Update
+echo 2. Run sample
+echo 3. Open project folder
 echo 4. Back
 echo.
 set /p T=Select number: 
@@ -118,7 +118,7 @@ if "%T%"=="1" (
 if "%T%"=="2" (
   if not exist ".\projects\transformers-sample\RUN_TRANSFORMERS.bat" (
     echo Transformers is not installed yet.
-    echo Please choose 1. Install / Update Transformers first.
+    echo Please choose 1. Install / Update first.
     pause
     goto transformers
   )
@@ -138,9 +138,9 @@ cls
 echo ========================================
 echo SAM / Segment Anything
 echo ========================================
-echo 1. Install / Update SAM
-echo 2. Run SAM environment check
-echo 3. Open SAM project folder
+echo 1. Install / Update
+echo 2. Run environment check
+echo 3. Open project folder
 echo 4. Back
 echo.
 set /p S=Select number: 
@@ -152,7 +152,7 @@ if "%S%"=="1" (
 if "%S%"=="2" (
   if not exist ".\projects\sam-sample\RUN_SAM.bat" (
     echo SAM is not installed yet.
-    echo Please choose 1. Install / Update SAM first.
+    echo Please choose 1. Install / Update first.
     pause
     goto sam
   )
@@ -172,9 +172,9 @@ cls
 echo ========================================
 echo Diffusers
 echo ========================================
-echo 1. Install / Update Diffusers
-echo 2. Run Diffusers environment check
-echo 3. Open Diffusers project folder
+echo 1. Install / Update
+echo 2. Run environment check
+echo 3. Open project folder
 echo 4. Back
 echo.
 set /p D=Select number: 
@@ -186,7 +186,7 @@ if "%D%"=="1" (
 if "%D%"=="2" (
   if not exist ".\projects\diffusers-sample\RUN_DIFFUSERS.bat" (
     echo Diffusers is not installed yet.
-    echo Please choose 1. Install / Update Diffusers first.
+    echo Please choose 1. Install / Update first.
     pause
     goto diffusers
   )
