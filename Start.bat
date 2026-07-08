@@ -114,25 +114,10 @@ pause
 goto main
 
 :winpython
-cls
-echo ========================================
-echo  WinPython setup guide
-echo ========================================
-echo.
-echo Expected layout:
-echo.
-echo memil-python-env
-echo   winpython
-echo     WPy64-xxxx
-echo       python
-echo         python.exe
-echo.
-echo Important:
-echo Do not only put Winpython64-xxxx.exe under winpython.
-echo You need to run or extract it first.
-echo.
-echo Recommended page:
-echo https://sourceforge.net/projects/winpython/files/WinPython_3.12/3.12.10.1/
-echo.
+if exist ".\tools\winpython-guide.ps1" (
+    powershell -NoProfile -ExecutionPolicy Bypass -File ".\tools\winpython-guide.ps1"
+) else (
+    echo tools\winpython-guide.ps1 was not found.
+)
 pause
 goto main
