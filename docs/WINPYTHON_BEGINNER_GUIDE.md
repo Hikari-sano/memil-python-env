@@ -1,35 +1,56 @@
 # WinPython beginner guide
 
-## What is WinPython?
+## Recommended WinPython
 
-WinPython is the Python runtime used by this environment. It is portable, so it can live inside this project folder.
+For this environment, use this WinPython download page:
 
-## What you need to do
+```text
+https://sourceforge.net/projects/winpython/files/WinPython_3.12/3.12.10.1/
+```
 
-### 1. Run the helper
+Recommended file:
 
-Double-click:
+```text
+Winpython64-3.12.10.1dot.exe
+```
+
+If you prefer ZIP extraction, this is also OK:
+
+```text
+Winpython64-3.12.10.1dot.zip
+```
+
+## Why this version?
+
+This project currently recommends WinPython 3.12.10.1 because it uses Python 3.12 and is suitable for the per-tool `.venv` workflow used by this environment.
+
+## Setup steps
+
+1. Double-click:
 
 ```text
 WINPYTHON_SETUP.bat
 ```
 
-The helper opens the WinPython download page and creates this folder:
+2. Choose:
+
+```text
+1. Open recommended WinPython download page
+```
+
+3. Download:
+
+```text
+Winpython64-3.12.10.1dot.exe
+```
+
+4. Extract WinPython into:
 
 ```text
 winpython/
 ```
 
-### 2. Download WinPython
-
-Download a 64-bit WinPython package from the WinPython page.
-For AI tools, Python 3.12 is recommended when available.
-
-### 3. Extract WinPython
-
-Extract WinPython into the `winpython` folder.
-
-The expected layout is:
+5. The final layout should look like this:
 
 ```text
 memil-python-env/
@@ -39,21 +60,14 @@ memil-python-env/
          └─ python.exe
 ```
 
-### 4. Check WinPython
-
-Run:
-
-```text
-WINPYTHON_SETUP.bat
-```
-
-again, or run:
+6. Run `WINPYTHON_SETUP.bat` again.
+7. Choose:
 
 ```text
-tools/check-winpython.ps1
+3. Check WinPython placement
 ```
 
-If the check passes, run:
+8. If the check succeeds, run:
 
 ```text
 Start.bat
@@ -61,24 +75,24 @@ Start.bat
 
 ## Common mistakes
 
-### Wrong layout
-
-This is wrong:
+Wrong:
 
 ```text
 winpython/
 └─ python.exe
 ```
 
-This is also wrong:
+Wrong:
 
 ```text
 winpython/
 └─ Downloads/
    └─ WPy64-xxxx/
+      └─ python/
+         └─ python.exe
 ```
 
-Correct example:
+Correct:
 
 ```text
 winpython/
@@ -87,6 +101,12 @@ winpython/
       └─ python.exe
 ```
 
-## Do not upload WinPython to GitHub
+## For beginners
 
-The `winpython/` folder is local only. Do not commit it to GitHub.
+If possible, use a ready-made lab distribution ZIP instead of downloading WinPython manually.
+
+If you must download manually, open this page and choose `Winpython64-3.12.10.1dot.exe`:
+
+```text
+https://sourceforge.net/projects/winpython/files/WinPython_3.12/3.12.10.1/
+```
