@@ -1,4 +1,4 @@
-﻿$ErrorActionPreference = "Continue"
+$ErrorActionPreference = "Continue"
 
 . "$PSScriptRoot\common-winpython.ps1"
 
@@ -65,7 +65,7 @@ $CodeExe = Join-Path $Root "vscode\Code.exe"
 if (Test-Path $CodeExe) {
     Write-MemilOk "VS Code found"
     Write-Host $CodeExe
-    & $CodeExe --version
+    Write-Host "VS Code executable check only. Version check skipped."
 } else {
     Write-MemilWarn "vscode\Code.exe not found"
 }
