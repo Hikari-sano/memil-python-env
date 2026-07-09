@@ -201,6 +201,7 @@ const fallbackScriptPolicy = {
 let activeScriptPolicy = fallbackScriptPolicy;
 
 const executionLogEntries = [];
+let lastCommandPayload = null;
 
 function renderItems(containerId, items) {
   const container = document.getElementById(containerId);
@@ -326,6 +327,32 @@ function renderScriptPolicy(policy) {
   `;
 }
 
+function renderCommandPayload(payload) {
+  const container = document.getElementById("command-payload");
+
+  if (!container) {
+    return;
+  }
+
+  if (!payload) {
+    container.innerHTML = `
+      <h3>No command payload yet</h3>
+      <p>Select a Quick Action button to preview the future Tauri command payload.</p>
+    `;
+    return;
+  }
+
+  container.innerHTML = `
+    <h3>Planned Tauri Command</h3>
+    <p><strong>Command:</strong> <code>${payload.command}</code></p>
+    <p><strong>Label:</strong> ${payload.label}</p>
+    <p><strong>Script:</strong> <code>${payload.script}</code></p>
+    <p><strong>Allowed by policy:</strong> ${payload.allowedByPolicy}</p>
+    <p><strong>Execution mode:</strong> ${payload.mode}</p>
+    <p><strong>Runner:</strong> ${payload.runner}</p>
+  `;
+}
+
 function renderExecutionLog() {
   const container = document.getElementById("execution-log");
 
@@ -349,6 +376,7 @@ function renderExecutionLog() {
           <p><strong>Script:</strong> <code>${entry.script}</code></p>
           <p><strong>Mode:</strong> ${entry.mode}</p>
           <p><strong>Policy:</strong> ${entry.policy}</p>
+          <p><strong>Bridge:</strong> ${entry.bridge}</p>
           <p><strong>Time:</strong> ${entry.time}</p>
         </div>
       `;
@@ -364,18 +392,63 @@ function isScriptAllowed(script) {
   });
 }
 
-function addExecutionLogEntry(label, script) {
-  const now = new Date();
+function createCommandPayload(label, script) {
   const allowed = isScriptAllowed(script);
+
+  return {
+    command: "run_script",
+    label,
+    script,
+    allowedByPolicy: allowed,
+    mode: "preview",
+    runner: "planned-tauri"
+  };
+}
+
+async function dispatchCommandPayload(payload) {
+  const tauriInvoke = window.__TAURI__?.core?.invoke;
+
+  if (!tauriInvoke) {
+    return {
+      ok: false,
+      executed: false,
+      message: "Tauri bridge is not available. Running in static preview mode."
+    };
+  }
+
+  try {
+    const result = await tauriInvoke("run_script", {
+      payload
+    });
+
+    return result;
+  } catch (error) {
+    return {
+      ok: false,
+      executed: false,
+      message: `Tauri bridge error: ${error}`
+    };
+  }
+}
+
+async function addExecutionLogEntry(label, script) {
+  const now = new Date();
+  const payload = createCommandPayload(label, script);
+
+  lastCommandPayload = payload;
+
+  const dispatchResult = await dispatchCommandPayload(payload);
 
   executionLogEntries.unshift({
     label,
     script,
     mode: "preview only",
-    policy: allowed ? "allowed by policy" : "blocked by policy",
+    policy: payload.allowedByPolicy ? "allowed by policy" : "blocked by policy",
+    bridge: dispatchResult.message,
     time: now.toLocaleString()
   });
 
+  renderCommandPayload(lastCommandPayload);
   renderExecutionLog();
 }
 
@@ -388,6 +461,8 @@ function setupExecutionLogControls() {
 
   clearButton.addEventListener("click", () => {
     executionLogEntries.length = 0;
+    lastCommandPayload = null;
+    renderCommandPayload(lastCommandPayload);
     renderExecutionLog();
   });
 }
@@ -557,6 +632,7 @@ document.addEventListener("DOMContentLoaded", () => {
   loadScriptPolicy();
 
   setupExecutionLogControls();
+  renderCommandPayload(lastCommandPayload);
   renderExecutionLog();
 
   console.log(appInfo);
