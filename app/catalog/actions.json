@@ -22,5 +22,13 @@
   {
     "label": "WinPython setup guide",
     "script": "tools/winpython-guide.ps1"
+  },
+  {
+    "label": "SAM setup",
+    "script": "tools/setup-sam.ps1"
+  },
+  {
+    "label": "Run SAM sample",
+    "script": "tools/run-sam-sample.ps1"
   }
 ]
