@@ -71,3 +71,10 @@ src-tauri/.tauri/
 
 #***cal Python / old backup folders
 ***acy/backup/python-old/
+
+# Node / npm
+node_modules/
+
+# Tauri / Rust build outputs
+src-tauri/target/
+target/
