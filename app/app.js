@@ -113,6 +113,10 @@ const fallbackActions = [
   }
 ];
 
+const executableActionScripts = [
+  "tools/health-check.ps1"
+];
+
 const fallbackStatusCards = [
   {
     label: "WinPython",
@@ -138,9 +142,10 @@ const fallbackStatusCards = [
 
 const fallbackRunnerStatus = {
   mode: "preview",
+  executionMode: "dryRun",
   backend: "planned-tauri",
   canExecuteScripts: false,
-  description: "This GUI prototype only previews future PowerShell script mappings. It does not execute scripts yet.",
+  description: "This GUI prototype supports controlled execution for safe runner actions only.",
   futureRuntime: "Tauri command bridge",
   scriptRoot: "tools"
 };
@@ -148,7 +153,7 @@ const fallbackRunnerStatus = {
 const fallbackScriptPolicy = {
   mode: "allowlist",
   canExecuteScripts: false,
-  description: "Only scripts listed in this policy should be executable when the future Tauri bridge is implemented.",
+  description: "Only scripts listed in this policy should be executable when the Tauri bridge is used.",
   allowedScripts: [
     {
       label: "First setup",
@@ -199,6 +204,7 @@ const fallbackScriptPolicy = {
 };
 
 let activeScriptPolicy = fallbackScriptPolicy;
+let activeRunnerStatus = fallbackRunnerStatus;
 
 const executionLogEntries = [];
 let lastCommandPayload = null;
@@ -287,11 +293,12 @@ function renderRunnerStatus(status) {
 
   const executionText = status.canExecuteScripts
     ? "Enabled"
-    : "Disabled in this prototype";
+    : "Controlled by Tauri runner";
 
   container.innerHTML = `
     <h3>Script execution: ${executionText}</h3>
     <p>${status.description}</p>
+    <p><strong>Execution mode:</strong> ${status.executionMode || "dryRun"}</p>
     <p><strong>Backend:</strong> ${status.backend}</p>
     <p><strong>Future runtime:</strong> ${status.futureRuntime}</p>
     <p><strong>Script root:</strong> ${status.scriptRoot}</p>
@@ -322,7 +329,7 @@ function renderScriptPolicy(policy) {
   container.innerHTML = `
     <h3>Policy mode: ${policy.mode}</h3>
     <p>${policy.description}</p>
-    <p><strong>Script execution now:</strong> Disabled in this prototype</p>
+    <p><strong>Script execution now:</strong> Controlled by Tauri runner</p>
     ${allowedItems}
   `;
 }
@@ -373,6 +380,7 @@ function renderExecutionLog() {
       return `
         <div class="item">
           <h3>${entry.label}</h3>
+          <p><strong>Script:</strong> <code>${entry.script}</code></p>
           <p><strong>Mode:</strong> ${entry.mode}</p>
           <p><strong>Policy:</strong> ${entry.policy}</p>
           <p><strong>Validation:</strong> ${entry.validationStatus}</p>
@@ -399,13 +407,16 @@ function isScriptAllowed(script) {
 
 function createCommandPayload(label, script) {
   const allowed = isScriptAllowed(script);
+  const executionMode = executableActionScripts.includes(script)
+    ? "execute"
+    : activeRunnerStatus.executionMode || "dryRun";
 
   return {
     command: "run_script",
     label,
     script,
     allowedByPolicy: allowed,
-    mode: "preview",
+    mode: executionMode,
     runner: "planned-tauri"
   };
 }
@@ -417,6 +428,10 @@ async function dispatchCommandPayload(payload) {
     return {
       ok: false,
       executed: false,
+      validationStatus: "static-preview",
+      exitCode: null,
+      stdout: "",
+      stderr: "",
       message: "Tauri bridge is not available. Running in static preview mode."
     };
   }
@@ -431,6 +446,10 @@ async function dispatchCommandPayload(payload) {
     return {
       ok: false,
       executed: false,
+      validationStatus: "tauri-bridge-error",
+      exitCode: null,
+      stdout: "",
+      stderr: `${error}`,
       message: `Tauri bridge error: ${error}`
     };
   }
@@ -449,7 +468,7 @@ async function addExecutionLogEntry(label, script) {
     script,
     mode: payload.mode || "preview",
     policy: payload.allowedByPolicy ? "allowed by policy" : "blocked by policy",
-    validationStatus: dispatchResult.validationStatus || "static-preview",
+    validationStatus: dispatchResult.validationStatus || "unknown",
     exitCode:
       dispatchResult.exitCode === null || dispatchResult.exitCode === undefined
         ? "not executed"
@@ -549,11 +568,15 @@ async function loadRunnerStatus() {
 
     const status = await response.json();
 
+    activeRunnerStatus = status;
+
     renderRunnerStatus(status);
 
     console.log("Loaded: ./catalog/runner.json");
   } catch (error) {
     console.warn("Runner status loading failed. Using fallback data.", error);
+
+    activeRunnerStatus = fallbackRunnerStatus;
 
     renderRunnerStatus(fallbackRunnerStatus);
   }
@@ -601,7 +624,7 @@ function setupActionPreview() {
         <h3>${label}</h3>
         <p>Future script mapping:</p>
         <p><code>${script}</code></p>
-        <p>This GUI prototype does not execute PowerShell scripts yet.</p>
+        <p>This GUI prototype sends controlled payloads to the Tauri runner.</p>
       `;
 
       addExecutionLogEntry(label, script);
