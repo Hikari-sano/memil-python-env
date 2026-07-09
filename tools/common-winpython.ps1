@@ -53,6 +53,7 @@ function Find-MemilWinPython {
         } |
         Select-Object -ExpandProperty FullName
 
+    $candidates = @($candidates)
     if ($candidates.Count -gt 0) {
         return [string]$candidates[0]
     }
