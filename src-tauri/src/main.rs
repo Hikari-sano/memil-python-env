@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::env;
 use std::path::PathBuf;
+use std::process::Command;
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -46,16 +47,6 @@ const ALLOWED_SCRIPTS: &[&str] = &[
 
 const EXECUTABLE_SCRIPTS: &[&str] = &[
     "tools/health-check.ps1",
-    "tools/show-catalog.ps1",
-];
-
-const POWERSHELL_PROGRAM: &str = "powershell.exe";
-
-const POWERSHELL_ARGUMENTS: &[&str] = &[
-    "-NoProfile",
-    "-ExecutionPolicy",
-    "Bypass",
-    "-File",
 ];
 
 fn normalize_script_path(script: &str) -> String {
@@ -68,11 +59,30 @@ fn normalize_script_path(script: &str) -> String {
     }
 }
 
+fn project_root() -> Result<PathBuf, String> {
+    let current = env::current_dir()
+        .map_err(|error| format!("Failed to read current directory: {}", error))?;
+
+    if current.ends_with("src-tauri") {
+        current
+            .parent()
+            .map(|path| path.to_path_buf())
+            .ok_or_else(|| "Failed to resolve project root from src-tauri.".to_string())
+    } else {
+        Ok(current)
+    }
+}
+
+fn build_script_full_path(normalized_script: &str) -> Result<PathBuf, String> {
+    let root = project_root()?;
+    Ok(root.join(normalized_script))
+}
+
 fn validate_runner_mode(mode: &str) -> Result<(), String> {
     match mode {
-        "dryRun" => Ok(()),
         "preview" => Ok(()),
-        "execute" => Err("Execute mode is locked. PowerShell execution is not enabled yet.".to_string()),
+        "dryRun" => Ok(()),
+        "execute" => Ok(()),
         other => Err(format!("Unsupported execution mode: {}", other)),
     }
 }
@@ -115,25 +125,6 @@ fn validate_script_path(script: &str) -> Result<String, String> {
     Ok(normalized)
 }
 
-fn project_root() -> Result<PathBuf, String> {
-    let current = env::current_dir()
-        .map_err(|error| format!("Failed to read current directory: {}", error))?;
-
-    if current.ends_with("src-tauri") {
-        current
-            .parent()
-            .map(|path| path.to_path_buf())
-            .ok_or_else(|| "Failed to resolve project root from src-tauri.".to_string())
-    } else {
-        Ok(current)
-    }
-}
-
-fn build_script_full_path(normalized_script: &str) -> Result<PathBuf, String> {
-    let root = project_root()?;
-    Ok(root.join(normalized_script))
-}
-
 fn validate_preflight(normalized_script: &str) -> Result<PathBuf, String> {
     let script_full_path = build_script_full_path(normalized_script)?;
 
@@ -154,30 +145,9 @@ fn validate_preflight(normalized_script: &str) -> Result<PathBuf, String> {
     Ok(script_full_path)
 }
 
-fn build_execution_plan_stdout(
-    normalized_script: &str,
-    script_full_path: &PathBuf,
-    mode: &str,
-) -> String {
-    let executable_status = if EXECUTABLE_SCRIPTS.contains(&normalized_script) {
-        "eligible-for-next-execution-phase"
-    } else {
-        "validated-but-not-enabled-for-execution"
-    };
-
-    format!(
-        "Execution readiness plan generated.\nExecution mode: {}\nScript: {}\nResolved path: {}\nExecutable status: {}\nPlanned shell: {}\nPlanned arguments: {} [script path]\nPowerShell process was not started.",
-        mode,
-        normalized_script,
-        script_full_path.display(),
-        executable_status,
-        POWERSHELL_PROGRAM,
-        POWERSHELL_ARGUMENTS.join(" ")
-    )
-}
-
 fn blocked_result(
     payload: CommandPayload,
+    normalized_script: String,
     validation_status: &str,
     message: String,
 ) -> CommandResult {
@@ -187,7 +157,7 @@ fn blocked_result(
         command: payload.command,
         label: payload.label,
         script: payload.script,
-        normalized_script: "".to_string(),
+        normalized_script,
         allowed_by_policy: payload.allowed_by_policy,
         mode: payload.mode,
         runner: payload.runner,
@@ -196,6 +166,127 @@ fn blocked_result(
         stdout: "".to_string(),
         stderr: message.clone(),
         message,
+    }
+}
+
+fn dry_run_result(
+    payload: CommandPayload,
+    normalized_script: String,
+    script_full_path: PathBuf,
+) -> CommandResult {
+    let executable_status = if EXECUTABLE_SCRIPTS.contains(&normalized_script.as_str()) {
+        "eligible-for-controlled-execution"
+    } else {
+        "validated-but-not-enabled-for-execution"
+    };
+
+    let stdout = format!(
+        "Dry-run only. No PowerShell process was started.\nScript: {}\nResolved path: {}\nExecutable status: {}\nPlanned shell: powershell.exe\nPlanned arguments: -NoProfile -ExecutionPolicy Bypass -File [script path]",
+        normalized_script,
+        script_full_path.display(),
+        executable_status
+    );
+
+    CommandResult {
+        ok: true,
+        executed: false,
+        command: payload.command,
+        label: payload.label,
+        script: payload.script,
+        normalized_script,
+        allowed_by_policy: payload.allowed_by_policy,
+        mode: payload.mode,
+        runner: payload.runner,
+        validation_status: "approved-dry-run".to_string(),
+        exit_code: None,
+        stdout,
+        stderr: "".to_string(),
+        message: "Dry-run mode approved. Rust validator approved this script. PowerShell execution is not enabled yet.".to_string(),
+    }
+}
+
+fn execute_script(
+    payload: CommandPayload,
+    normalized_script: String,
+    script_full_path: PathBuf,
+) -> CommandResult {
+    if !EXECUTABLE_SCRIPTS.contains(&normalized_script.as_str()) {
+        let message = format!(
+            "Execution blocked. This script is validated but not enabled for real execution yet: {}",
+            normalized_script
+        );
+
+        return blocked_result(
+            payload,
+            normalized_script,
+            "blocked-by-execution-allowlist",
+            message,
+        );
+    }
+
+    let root = match project_root() {
+        Ok(value) => value,
+        Err(reason) => {
+            return blocked_result(
+                payload,
+                normalized_script,
+                "blocked-by-project-root",
+                reason,
+            );
+        }
+    };
+
+    let output = Command::new("powershell.exe")
+        .arg("-NoProfile")
+        .arg("-ExecutionPolicy")
+        .arg("Bypass")
+        .arg("-File")
+        .arg(&script_full_path)
+        .current_dir(root)
+        .output();
+
+    match output {
+        Ok(result) => {
+            let exit_code = result.status.code();
+            let stdout = String::from_utf8_lossy(&result.stdout).to_string();
+            let stderr = String::from_utf8_lossy(&result.stderr).to_string();
+            let success = result.status.success();
+
+            CommandResult {
+                ok: success,
+                executed: true,
+                command: payload.command,
+                label: payload.label,
+                script: payload.script,
+                normalized_script,
+                allowed_by_policy: payload.allowed_by_policy,
+                mode: payload.mode,
+                runner: payload.runner,
+                validation_status: if success {
+                    "executed-success".to_string()
+                } else {
+                    "executed-failed".to_string()
+                },
+                exit_code,
+                stdout,
+                stderr,
+                message: if success {
+                    "PowerShell script executed successfully.".to_string()
+                } else {
+                    "PowerShell script finished with a non-zero exit code.".to_string()
+                },
+            }
+        }
+        Err(error) => {
+            let message = format!("Failed to start PowerShell process: {}", error);
+
+            blocked_result(
+                payload,
+                normalized_script,
+                "failed-to-start-powershell",
+                message,
+            )
+        }
     }
 }
 
@@ -208,8 +299,9 @@ fn run_script(payload: CommandPayload) -> Result<CommandResult, String> {
     if let Err(reason) = validate_runner_mode(&payload.mode) {
         return Ok(blocked_result(
             payload,
+            "".to_string(),
             "blocked-by-runner-mode",
-            format!("Blocked by runner mode lock. {}", reason),
+            format!("Blocked by runner mode. {}", reason),
         ));
     }
 
@@ -218,6 +310,7 @@ fn run_script(payload: CommandPayload) -> Result<CommandResult, String> {
         Err(reason) => {
             return Ok(blocked_result(
                 payload,
+                "".to_string(),
                 "blocked-by-script-validator",
                 format!("Blocked by Rust validator. {}", reason),
             ));
@@ -227,66 +320,36 @@ fn run_script(payload: CommandPayload) -> Result<CommandResult, String> {
     let script_full_path = match validate_preflight(&normalized_script) {
         Ok(value) => value,
         Err(reason) => {
-            return Ok(CommandResult {
-                ok: false,
-                executed: false,
-                command: payload.command,
-                label: payload.label,
-                script: payload.script,
+            return Ok(blocked_result(
+                payload,
                 normalized_script,
-                allowed_by_policy: payload.allowed_by_policy,
-                mode: payload.mode,
-                runner: payload.runner,
-                validation_status: "blocked-by-execution-preflight".to_string(),
-                exit_code: None,
-                stdout: "".to_string(),
-                stderr: reason.clone(),
-                message: format!("Blocked by execution readiness preflight. {}", reason),
-            });
+                "blocked-by-preflight",
+                format!("Blocked by execution preflight. {}", reason),
+            ));
         }
     };
 
     if !payload.allowed_by_policy {
-        return Ok(CommandResult {
-            ok: false,
-            executed: false,
-            command: payload.command,
-            label: payload.label,
-            script: payload.script,
+        return Ok(blocked_result(
+            payload,
             normalized_script,
-            allowed_by_policy: payload.allowed_by_policy,
-            mode: payload.mode,
-            runner: payload.runner,
-            validation_status: "blocked-by-frontend-policy".to_string(),
-            exit_code: None,
-            stdout: "".to_string(),
-            stderr: "Blocked by frontend script policy.".to_string(),
-            message: "Blocked by frontend script policy. No script was executed.".to_string(),
-        });
+            "blocked-by-frontend-policy",
+            "Blocked by frontend script policy. No script was executed.".to_string(),
+        ));
     }
 
-    let execution_plan_stdout = build_execution_plan_stdout(
-        &normalized_script,
-        &script_full_path,
-        &payload.mode,
-    );
+    let mode = payload.mode.clone();
 
-    Ok(CommandResult {
-        ok: true,
-        executed: false,
-        command: payload.command,
-        label: payload.label,
-        script: payload.script,
-        normalized_script,
-        allowed_by_policy: payload.allowed_by_policy,
-        mode: payload.mode,
-        runner: payload.runner,
-        validation_status: "approved-execution-readiness-plan".to_string(),
-        exit_code: None,
-        stdout: execution_plan_stdout,
-        stderr: "".to_string(),
-        message: "Execution readiness plan generated. PowerShell execution is still disabled.".to_string(),
-    })
+    match mode.as_str() {
+        "preview" | "dryRun" => Ok(dry_run_result(payload, normalized_script, script_full_path)),
+        "execute" => Ok(execute_script(payload, normalized_script, script_full_path)),
+        other => Ok(blocked_result(
+            payload,
+            normalized_script,
+            "blocked-by-runner-mode",
+            format!("Unsupported execution mode: {}", other),
+        )),
+    }
 }
 
 fn main() {
