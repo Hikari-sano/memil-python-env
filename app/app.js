@@ -80,6 +80,10 @@ const fallbackActions = [
     script: "tools/first-setup.ps1"
   },
   {
+    label: "VS Code setup",
+    script: "tools/install-vscode.ps1"
+  },
+  {
     label: "Recommended setup",
     script: "tools/setup-preset.ps1"
   },
