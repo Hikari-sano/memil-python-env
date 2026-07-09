@@ -28,14 +28,33 @@ const fallbackCatalogItems = [
   }
 ];
 
-function renderCatalog(items) {
-  const catalog = document.getElementById("catalog-list");
+const fallbackSetupItems = [
+  {
+    title: "Minimal setup",
+    description: "Basic setup for starting Python and VS Code."
+  },
+  {
+    title: "Lab basic setup",
+    description: "Recommended setup for research, classes, and data analysis."
+  },
+  {
+    title: "Vision AI setup",
+    description: "Setup for image recognition and object detection."
+  },
+  {
+    title: "Audio AI setup",
+    description: "Setup for speech recognition and transcription."
+  }
+];
 
-  if (!catalog) {
+function renderItems(containerId, items) {
+  const container = document.getElementById(containerId);
+
+  if (!container) {
     return;
   }
 
-  catalog.innerHTML = "";
+  container.innerHTML = "";
 
   items.forEach((item) => {
     const div = document.createElement("div");
@@ -47,27 +66,27 @@ function renderCatalog(items) {
       <p>${item.description}</p>
     `;
 
-    catalog.appendChild(div);
+    container.appendChild(div);
   });
 }
 
-async function loadCatalog() {
+async function loadJsonList(path, fallbackItems, containerId) {
   try {
-    const response = await fetch("./catalog/index.json");
+    const response = await fetch(path);
 
     if (!response.ok) {
-      throw new Error(`Failed to load catalog: ${response.status}`);
+      throw new Error(`Failed to load ${path}: ${response.status}`);
     }
 
     const items = await response.json();
 
-    renderCatalog(items);
+    renderItems(containerId, items);
 
-    console.log("Catalog loaded from app/catalog/index.json");
+    console.log(`Loaded: ${path}`);
   } catch (error) {
-    console.warn("Catalog JSON loading failed. Using fallback data.", error);
+    console.warn(`JSON loading failed: ${path}. Using fallback data.`, error);
 
-    renderCatalog(fallbackCatalogItems);
+    renderItems(containerId, fallbackItems);
   }
 }
 
@@ -79,7 +98,17 @@ document.addEventListener("DOMContentLoaded", () => {
       `${appInfo.version} | ${appInfo.branch} | ${appInfo.status}`;
   }
 
-  loadCatalog();
+  loadJsonList(
+    "./catalog/index.json",
+    fallbackCatalogItems,
+    "catalog-list"
+  );
+
+  loadJsonList(
+    "./catalog/setup.json",
+    fallbackSetupItems,
+    "setup-list"
+  );
 
   console.log(appInfo);
 });

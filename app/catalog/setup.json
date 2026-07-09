@@ -1,0 +1,18 @@
+[
+  {
+    "title": "Minimal setup",
+    "description": "Basic setup for starting Python and VS Code."
+  },
+  {
+    "title": "Lab basic setup",
+    "description": "Recommended setup for research, classes, and data analysis."
+  },
+  {
+    "title": "Vision AI setup",
+    "description": "Setup for image recognition and object detection."
+  },
+  {
+    "title": "Audio AI setup",
+    "description": "Setup for speech recognition and transcription."
+  }
+]
