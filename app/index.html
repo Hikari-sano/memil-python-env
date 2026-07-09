@@ -35,7 +35,7 @@
 
     .grid {
       display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
       gap: 16px;
     }
 
@@ -67,7 +67,7 @@
 
     .actions {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
       gap: 12px;
     }
 
@@ -105,6 +105,7 @@
     .item p {
       margin: 0;
       color: #94a3b8;
+      line-height: 1.5;
     }
 
     footer {
@@ -153,6 +154,35 @@
         <div class="item">
           <h3>Backend plan</h3>
           <p>Future GUI actions should call existing tools/*.ps1 scripts.</p>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Data Sources</h2>
+      <div class="list">
+        <div class="item">
+          <h3>catalog/index.json</h3>
+          <p>Stores AI / Tools catalog items such as Jupyter, YOLO, Whisper, and Transformers.</p>
+        </div>
+
+        <div class="item">
+          <h3>catalog/setup.json</h3>
+          <p>Stores recommended setup presets such as minimal, lab basic, vision AI, and audio AI.</p>
+        </div>
+
+        <div class="item">
+          <h3>catalog/installed.json</h3>
+          <p>Tracks installed tools and project environment status.</p>
+        </div>
+
+        <div class="item">
+          <h3>tools/*.ps1</h3>
+          <p>Provides the backend scripts that the future GUI should call.</p>
+        </div>
+
+        <div class="item">
+          <h3>projects/&lt;tool&gt;/.venv</h3>
+          <p>Each AI or tool project should have its own isolated Python environment.</p>
         </div>
       </div>
     </section>
@@ -196,27 +226,27 @@
       <div class="list">
         <div class="item">
           <h3>Common Python packages</h3>
-          <p>研究・データ分析の基本パッケージを入れたい</p>
+          <p>Install basic packages for research and data analysis.</p>
         </div>
 
         <div class="item">
           <h3>Jupyter / JupyterLab</h3>
-          <p>ノートブックで実験したい</p>
+          <p>Use notebooks for experiments and data analysis.</p>
         </div>
 
         <div class="item">
           <h3>YOLO / Ultralytics</h3>
-          <p>画像の中の物体を検出したい</p>
+          <p>Detect objects in images and videos.</p>
         </div>
 
         <div class="item">
           <h3>Whisper</h3>
-          <p>音声を文字起こししたい</p>
+          <p>Transcribe audio files into text.</p>
         </div>
 
         <div class="item">
           <h3>Hugging Face Transformers</h3>
-          <p>文章AI・自然言語処理を試したい</p>
+          <p>Try text AI and natural language processing.</p>
         </div>
       </div>
     </section>
@@ -225,30 +255,31 @@
       <h2>Recommended Setup</h2>
       <div class="list">
         <div class="item">
-          <h3>最小セット</h3>
-          <p>Python と VS Code を使い始めるための最小構成です。</p>
+          <h3>Minimal setup</h3>
+          <p>Basic setup for starting Python and VS Code.</p>
         </div>
 
         <div class="item">
-          <h3>研究室おすすめセット</h3>
-          <p>研究・授業・データ分析でよく使う基本環境です。</p>
+          <h3>Lab basic setup</h3>
+          <p>Recommended setup for research, classes, and data analysis.</p>
         </div>
 
         <div class="item">
-          <h3>画像AIセット</h3>
-          <p>画像認識や物体検出を始めるための環境です。</p>
+          <h3>Vision AI setup</h3>
+          <p>Setup for image recognition and object detection.</p>
         </div>
 
         <div class="item">
-          <h3>音声AIセット</h3>
-          <p>音声認識や文字起こしを始めるための環境です。</p>
+          <h3>Audio AI setup</h3>
+          <p>Setup for speech recognition and transcription.</p>
         </div>
       </div>
     </section>
   </main>
 
   <footer>
-    This is a static GUI prototype. It does not execute PowerShell scripts yet. Start.bat remains the stable CLI launcher.
+    This is a static GUI prototype. It does not execute PowerShell scripts yet.
+    Start.bat remains the stable CLI launcher.
   </footer>
 </body>
 </html>
